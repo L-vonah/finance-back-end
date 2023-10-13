@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace finance.Models;
+namespace Finance.Models;
 
 public class Expense
 {

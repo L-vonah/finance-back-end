@@ -1,4 +1,4 @@
-using finance.Data;
+using Finance.Data;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);

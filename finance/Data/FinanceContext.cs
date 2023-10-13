@@ -1,7 +1,7 @@
-﻿using finance.Models;
+﻿using Finance.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace finance.Data
+namespace Finance.Data
 {
     public class FinanceContext : DbContext
     {
