@@ -1,4 +1,5 @@
-﻿using Finance.Infrastructure;
+﻿using Finance.Exceptions;
+using Finance.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 
 namespace Finance.Data;
@@ -15,7 +16,11 @@ public class FinanceRepository<TEntity> : IRepository<TEntity> where TEntity : c
     public async Task<TEntity> FirstAsync(int id)
     {
         var entity = await _context.Set<TEntity>().FindAsync(id);
-        return entity ?? throw new Exception("Entity not found");
+        if (entity != null)
+        {
+            return entity;
+        }
+        throw new EntityNotFoundException(typeof(TEntity), id);
     }
 
     public async Task<IEnumerable<TEntity>> ToListAsync()
@@ -25,37 +30,115 @@ public class FinanceRepository<TEntity> : IRepository<TEntity> where TEntity : c
 
     public async Task AddAsync(TEntity entity)
     {
+        if (entity == null)
+        {
+            throw new EntityNotNullException(typeof(TEntity));
+        }
+
         _context.Set<TEntity>().Add(entity);
-        await _context.SaveChangesAsync();
+
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException e)
+        {
+            throw new FinanceException("It was not possible to add the entity.", e);
+        }
     }
 
     public async Task AddRangeAsync(IEnumerable<TEntity> entities)
     {
+        if (entities == null)
+        {
+            throw new EntityNotNullException(typeof(TEntity));
+        }
+
         _context.Set<TEntity>().AddRange(entities);
-        await _context.SaveChangesAsync();
+
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException e)
+        {
+            throw new FinanceException("It was not possible to add the entities.", e);
+        }
     }
 
     public async Task UpdateAsync(TEntity entity)
     {
+        if (entity == null)
+        {
+            throw new EntityNotNullException(typeof(TEntity));
+        }
+
         _context.Set<TEntity>().Update(entity);
-        await _context.SaveChangesAsync();
+
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException e)
+        {
+            throw new FinanceException("It was not possible to update the entity.", e);
+        }
     }
 
     public async Task UpdateRangeAsync(IEnumerable<TEntity> entities)
     {
+        if (entities == null)
+        {
+            throw new EntityNotNullException(typeof(TEntity));
+        }
+
         _context.Set<TEntity>().UpdateRange(entities);
-        await _context.SaveChangesAsync();
+
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException e)
+        {
+            throw new FinanceException("It was not possible to update the entities.", e);
+        }
     }
 
     public async Task RemoveAsync(TEntity entity)
     {
+        if (entity == null)
+        {
+            throw new EntityNotNullException(typeof(TEntity));
+        }
+
         _context.Set<TEntity>().Remove(entity);
-        await _context.SaveChangesAsync();
+
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException e)
+        {
+            throw new FinanceException("It was not possible to remove the entity.", e);
+        }
     }
 
     public async Task RemoveRangeAsync(IEnumerable<TEntity> entities)
     {
+        if (entities == null)
+        {
+            throw new EntityNotNullException(typeof(TEntity));
+        }
+
         _context.Set<TEntity>().RemoveRange(entities);
-        await _context.SaveChangesAsync();
+
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException e)
+        {
+            throw new FinanceException("It was not possible to remove the entities.", e);
+        }
     }
 }
