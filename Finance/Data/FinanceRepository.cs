@@ -1,6 +1,7 @@
 ﻿using Finance.Exceptions;
 using Finance.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace Finance.Data;
 
@@ -13,7 +14,7 @@ public class FinanceRepository<TEntity> : IRepository<TEntity> where TEntity : c
         _context = context;
     }
 
-    public async Task<TEntity> FirstAsync(int id)
+    public virtual async Task<TEntity> FindAsync(int id)
     {
         var entity = await _context.Set<TEntity>().FindAsync(id);
         if (entity != null)
@@ -23,12 +24,27 @@ public class FinanceRepository<TEntity> : IRepository<TEntity> where TEntity : c
         throw new EntityNotFoundException(typeof(TEntity), id);
     }
 
-    public async Task<IEnumerable<TEntity>> ToListAsync()
+    public virtual async Task<TEntity> FindAsync(Expression<Func<TEntity, bool>> match)
+    {
+        var entity = await _context.Set<TEntity>().Where(match).SingleOrDefaultAsync();
+        if (entity != null)
+        {
+            return entity;
+        }
+        throw new EntityNotFoundException(typeof(TEntity));
+    }
+
+    public virtual async Task<IEnumerable<TEntity>> GetAllAsync()
     {
         return await _context.Set<TEntity>().ToListAsync();
     }
 
-    public async Task AddAsync(TEntity entity)
+    public virtual async Task<IEnumerable<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>> match)
+    {
+        return await _context.Set<TEntity>().Where(match).ToListAsync();
+    }
+
+    public virtual async Task AddAsync(TEntity entity)
     {
         if (entity == null)
         {
@@ -47,7 +63,7 @@ public class FinanceRepository<TEntity> : IRepository<TEntity> where TEntity : c
         }
     }
 
-    public async Task AddRangeAsync(IEnumerable<TEntity> entities)
+    public virtual async Task AddRangeAsync(IEnumerable<TEntity> entities)
     {
         if (entities == null)
         {
@@ -66,7 +82,7 @@ public class FinanceRepository<TEntity> : IRepository<TEntity> where TEntity : c
         }
     }
 
-    public async Task UpdateAsync(TEntity entity)
+    public virtual async Task UpdateAsync(TEntity entity)
     {
         if (entity == null)
         {
@@ -85,7 +101,7 @@ public class FinanceRepository<TEntity> : IRepository<TEntity> where TEntity : c
         }
     }
 
-    public async Task UpdateRangeAsync(IEnumerable<TEntity> entities)
+    public virtual async Task UpdateRangeAsync(IEnumerable<TEntity> entities)
     {
         if (entities == null)
         {
@@ -104,7 +120,7 @@ public class FinanceRepository<TEntity> : IRepository<TEntity> where TEntity : c
         }
     }
 
-    public async Task RemoveAsync(TEntity entity)
+    public virtual async Task RemoveAsync(TEntity entity)
     {
         if (entity == null)
         {
@@ -123,7 +139,7 @@ public class FinanceRepository<TEntity> : IRepository<TEntity> where TEntity : c
         }
     }
 
-    public async Task RemoveRangeAsync(IEnumerable<TEntity> entities)
+    public virtual async Task RemoveRangeAsync(IEnumerable<TEntity> entities)
     {
         if (entities == null)
         {
@@ -140,5 +156,25 @@ public class FinanceRepository<TEntity> : IRepository<TEntity> where TEntity : c
         {
             throw new FinanceException("It was not possible to remove the entities.", e);
         }
+    }
+
+    public virtual async Task<int> CountAsync()
+    {
+        return await _context.Set<TEntity>().CountAsync();
+    }
+
+    public virtual async Task<int> CountAsync(Expression<Func<TEntity, bool>> predicate)
+    {
+        return await _context.Set<TEntity>().Where(predicate).CountAsync();
+    }
+
+    public virtual IQueryable<TEntity> Where(Expression<Func<TEntity, bool>> predicate)
+    {
+        return _context.Set<TEntity>().Where(predicate);
+    }
+
+    public virtual IQueryable<TEntity> WhereIf(bool condition, Expression<Func<TEntity, bool>> predicate)
+    {
+        return condition ? _context.Set<TEntity>().Where(predicate) : _context.Set<TEntity>();
     }
 }

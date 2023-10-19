@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
+using Finance.Data.Repositories;
 using Finance.Dtos;
 using Finance.Exceptions;
 using Finance.Extensions;
-using Finance.Infrastructure;
 using Finance.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,31 +13,31 @@ namespace Finance.Controllers;
 [ApiExplorerSettings(GroupName = "v1", IgnoreApi = false)]
 public class ExpensesController : ControllerBase
 {
-    private readonly IRepository<Expense> _repository;
+    private readonly ExpenseRepository _repository;
     private readonly IMapper _mapper;
 
-    public ExpensesController(IRepository<Expense> repository, IMapper mapper)
+    public ExpensesController(ExpenseRepository repository, IMapper mapper)
     {
         _repository = repository;
         _mapper = mapper;
     }
 
     [HttpGet]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<Expense>))]
+    [ProducesResponseType(typeof(IEnumerable<Expense>), StatusCodes.Status200OK)]
     public async Task<IActionResult> ListExpenses()
     {
-        var expenses = await _repository.ToListAsync();
+        var expenses = await _repository.GetAllAsync();
         return Ok(expenses);
     }
 
     [HttpGet("{id}")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Expense))]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(string))]
+    [ProducesResponseType(typeof(Expense), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetExpense(int id)
     {
         try
         {
-            var expense = await _repository.FirstAsync(id);
+            var expense = await _repository.FindAsync(id);
             return Ok(expense);
         }
         catch (EntityNotFoundException e)
@@ -47,8 +47,8 @@ public class ExpensesController : ControllerBase
     }
 
     [HttpPost]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Expense))]
-    [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(string))]
+    [ProducesResponseType(typeof(Expense), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(string), StatusCodes.Status503ServiceUnavailable)]
     public async Task<IActionResult> AddExpense([FromBody] ExpenseDto expenseDto)
     {
         expenseDto.RequireNotNull();
@@ -67,15 +67,15 @@ public class ExpensesController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Expense))]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(string))]
-    [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(string))]
+    [ProducesResponseType(typeof(Expense), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(string), StatusCodes.Status503ServiceUnavailable)]
     public async Task<IActionResult> UpdateExpense([FromRoute] int id, [FromBody] ExpenseDto expenseDto)
     {
         expenseDto.RequireNotNull();
         try
         {
-            Expense expense = await _repository.FirstAsync(id);
+            Expense expense = await _repository.FindAsync(id);
             expense = _mapper.Map<Expense>(expenseDto);
             await _repository.UpdateAsync(expense);
 
@@ -93,13 +93,13 @@ public class ExpensesController : ControllerBase
 
     [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(string))]
-    [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(string))]
+    [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(string), StatusCodes.Status503ServiceUnavailable)]
     public async Task<IActionResult> DeleteExpense([FromRoute] int id)
     {
         try
         {
-            Expense expense = await _repository.FirstAsync(id);
+            Expense expense = await _repository.FindAsync(id);
             await _repository.RemoveAsync(expense!);
             return Ok();
         }
