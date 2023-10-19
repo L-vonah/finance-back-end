@@ -76,7 +76,8 @@ public class ExpensesController : ControllerBase
         try
         {
             Expense expense = await _repository.FindAsync(id);
-            expense = _mapper.Map<Expense>(expenseDto);
+            expenseDto.Id = id;
+            _mapper.Map(expenseDto, expense);
             await _repository.UpdateAsync(expense);
 
             return Ok(expense);
