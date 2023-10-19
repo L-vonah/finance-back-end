@@ -1,12 +1,12 @@
 ﻿using System.Linq.Expressions;
 
-namespace Finance.Infrastructure;
+namespace Infrastructure.Repository;
 
 /// <summary>
 /// See <a href="https://www.c-sharpcorner.com/article/net-entity-framework-core-generic-async-operations-with-unit-of-work-generic-re/"/>
 /// </summary>
 /// <typeparam name="TEntity"></typeparam>
-public interface IRepository<TEntity> where TEntity : class // TODO: Add constraint for IEntity like IAggregateRoot.
+public interface IRepository<TEntity> where TEntity : class
 {
     Task<TEntity> FindAsync(int id);
     Task<TEntity> FindAsync(Expression<Func<TEntity, bool>> match);
@@ -24,4 +24,3 @@ public interface IRepository<TEntity> where TEntity : class // TODO: Add constra
     IQueryable<TEntity> WhereIf(bool condition, Expression<Func<TEntity, bool>> predicate);
 
 }
-// https://www.c-sharpcorner.com/article/net-entity-framework-core-generic-async-operations-with-unit-of-work-generic-re/

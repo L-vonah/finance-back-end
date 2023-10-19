@@ -1,10 +1,10 @@
-﻿using System.ComponentModel;
+﻿using Infrastructure.Data;
+using System.ComponentModel;
 
 namespace Finance.Models;
 
-public class Expense
+public class Expense : BaseEntity
 {
-    public int Id { get; set; }
     public string Description { get; set; } = null!;
     public ExpenseCategory Category { get; set; }
 }

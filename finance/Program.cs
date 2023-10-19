@@ -1,7 +1,7 @@
 using Finance;
 using Finance.Data;
 using Finance.Data.Repositories;
-using Finance.Infrastructure;
+using Infrastructure.Repository;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using System.Text.Json.Serialization;

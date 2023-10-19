@@ -1,11 +1,12 @@
 ﻿using Finance.Exceptions;
-using Finance.Infrastructure;
+using Infrastructure.Data;
+using Infrastructure.Repository;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
 namespace Finance.Data;
 
-public class FinanceRepository<TEntity> : IRepository<TEntity> where TEntity : class
+public class FinanceRepository<TEntity> : IRepository<TEntity> where TEntity : BaseEntity
 {
     private readonly FinanceContext _context;
 
