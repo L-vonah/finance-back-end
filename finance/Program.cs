@@ -1,5 +1,6 @@
 using Finance;
 using Finance.Data;
+using Finance.Data.Repositories;
 using Finance.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
@@ -29,6 +30,7 @@ builder.Services.AddDbContext<FinanceContext>(options =>
 });
 
 builder.Services.AddScoped(typeof(IRepository<>), typeof(FinanceRepository<>));
+builder.Services.AddScoped<ExpenseRepository>();
 builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
 
 var app = builder.Build();

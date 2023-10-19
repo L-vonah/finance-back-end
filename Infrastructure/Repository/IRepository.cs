@@ -6,7 +6,7 @@ namespace Finance.Infrastructure;
 /// See <a href="https://www.c-sharpcorner.com/article/net-entity-framework-core-generic-async-operations-with-unit-of-work-generic-re/"/>
 /// </summary>
 /// <typeparam name="TEntity"></typeparam>
-public interface IRepository<TEntity> where TEntity : class // TODO: Add constraint for IEntity like IAggregateRoot. Move to Infrastructure project.
+public interface IRepository<TEntity> where TEntity : class // TODO: Add constraint for IEntity like IAggregateRoot.
 {
     Task<TEntity> FindAsync(int id);
     Task<TEntity> FindAsync(Expression<Func<TEntity, bool>> match);
