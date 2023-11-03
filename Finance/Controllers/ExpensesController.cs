@@ -5,6 +5,7 @@ using Finance.Exceptions;
 using Finance.Extensions;
 using Finance.Models;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
 
 namespace Finance.Controllers;
 
@@ -27,32 +28,31 @@ public class ExpensesController : ControllerBase
     public async Task<IActionResult> ListExpenses()
     {
         var expenses = await _repository.GetAllAsync();
-        return Ok(expenses);
+        return this.ToActionResult(HttpStatusCode.OK, expenses);
     }
 
     [HttpGet("{id}")]
     [ProducesResponseType(typeof(Expense), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetExpense(int id)
     {
         try
         {
             var expense = await _repository.FindAsync(id);
-            return Ok(expense);
+            return this.ToActionResult(HttpStatusCode.OK, expense);
         }
         catch (EntityNotFoundException e)
         {
-            return NotFound(e.Message);
+            return this.ToActionResult(HttpStatusCode.NotFound, message: e.Message);
         }
     }
 
     [HttpPost]
     [ProducesResponseType(typeof(Expense), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(string), StatusCodes.Status503ServiceUnavailable)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status503ServiceUnavailable)]
     public async Task<IActionResult> AddExpense([FromBody] ExpenseDto expenseDto)
     {
-        expenseDto.RequireNotNull();
-        Expense expense = _mapper.Map<Expense>(expenseDto);
+        Expense expense = _mapper.Map<Expense>(expenseDto.RequireNotNull());
 
         try
         {
@@ -60,16 +60,15 @@ public class ExpensesController : ControllerBase
         }
         catch (FinanceException e)
         {
-            return StatusCode(StatusCodes.Status503ServiceUnavailable, e.Message);
+            return this.ToActionResult(HttpStatusCode.ServiceUnavailable, message: e.Message);
         }
 
-        return Ok(expense);
+        return this.ToActionResult(HttpStatusCode.OK, expense);
     }
 
-    [HttpPut("{id}")]
+    [HttpPut("{id:int}")]
     [ProducesResponseType(typeof(Expense), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(string), StatusCodes.Status503ServiceUnavailable)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status503ServiceUnavailable)]
     public async Task<IActionResult> UpdateExpense([FromRoute] int id, [FromBody] ExpenseDto expenseDto)
     {
         expenseDto.RequireNotNull();
@@ -80,22 +79,18 @@ public class ExpensesController : ControllerBase
             _mapper.Map(expenseDto, expense);
             await _repository.UpdateAsync(expense);
 
-            return Ok(expense);
-        }
-        catch (EntityNotFoundException e)
-        {
-            return NotFound(e.Message);
+            return this.ToActionResult(HttpStatusCode.OK, expense);
         }
         catch (FinanceException e)
         {
-            return StatusCode(StatusCodes.Status503ServiceUnavailable, e.Message);
+            return this.ToActionResult(HttpStatusCode.ServiceUnavailable, message: e.Message);
         }
     }
 
     [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(string), StatusCodes.Status503ServiceUnavailable)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status503ServiceUnavailable)]
     public async Task<IActionResult> DeleteExpense([FromRoute] int id)
     {
         try
@@ -106,11 +101,11 @@ public class ExpensesController : ControllerBase
         }
         catch (EntityNotFoundException e)
         {
-            return NotFound(e.Message);
+            return this.ToActionResult(HttpStatusCode.NotFound, message: e.Message);
         }
         catch (FinanceException e)
         {
-            return StatusCode(StatusCodes.Status503ServiceUnavailable, e.Message);
+            return this.ToActionResult(HttpStatusCode.NotFound, message: e.Message);
         }
     }
 }
