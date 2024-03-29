@@ -23,7 +23,7 @@ public class EntityNotFoundException : FinanceException
         return $"The entity of type {type.Name} was not found.";
     }
 
-    public static string GetMessage(Type type, int? id = null)
+    public static string GetMessage(Type type, int id)
     {
         return $"The entity of type {type.Name} with id {id} was not found.";
     }
