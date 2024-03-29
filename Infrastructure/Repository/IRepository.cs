@@ -18,9 +18,10 @@ public interface IRepository<TEntity> where TEntity : class
     Task UpdateRangeAsync(IEnumerable<TEntity> entities);
     Task RemoveAsync(TEntity entity);
     Task RemoveRangeAsync(IEnumerable<TEntity> entities);
+    Task<IEnumerable<TResult>> SelectListAsync<TResult>(Expression<Func<TEntity, TResult>> selector);
+    Task<IEnumerable<TResult>> SelectListAsync<TResult>(Expression<Func<TEntity, bool>> predicate, Expression<Func<TEntity, TResult>> selector);
+    Task<TResult> SelectSingleAsync<TResult>(Expression<Func<TEntity, bool>> predicate, Expression<Func<TEntity, TResult>> selector);
     Task<int> CountAsync();
     Task<int> CountAsync(Expression<Func<TEntity, bool>> predicate);
-    IQueryable<TEntity> Where(Expression<Func<TEntity, bool>> predicate);
-    IQueryable<TEntity> WhereIf(bool condition, Expression<Func<TEntity, bool>> predicate);
 
 }

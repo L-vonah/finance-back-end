@@ -19,31 +19,31 @@ public class FinanceRepository<TEntity> : IRepository<TEntity> where TEntity : B
     public virtual async Task<TEntity> FindAsync(int id)
     {
         var entity = await _dbSet.FindAsync(id);
-        if (entity != null)
+        if (entity == null)
         {
-            return entity;
+            throw new EntityNotFoundException(typeof(TEntity), id);
         }
-        throw new EntityNotFoundException(typeof(TEntity), id);
+        return entity;
     }
 
     public virtual async Task<TEntity> FindAsync(Expression<Func<TEntity, bool>> match)
     {
         var entity = await Where(match).SingleOrDefaultAsync();
-        if (entity != null)
+        if (entity == null)
         {
-            return entity;
+            throw new EntityNotFoundException(typeof(TEntity));
         }
-        throw new EntityNotFoundException(typeof(TEntity));
+        return entity;
     }
 
     public virtual async Task<IEnumerable<TEntity>> GetAllAsync()
     {
-        return await _dbSet.ToListAsync();
+        return await _dbSet.TagWithCallSite().ToListAsync();
     }
 
     public virtual async Task<IEnumerable<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>> match)
     {
-        return await Where(match).ToListAsync();
+        return await Where(match).TagWithCallSite().ToListAsync();
     }
 
     public virtual async Task AddAsync(TEntity entity)
@@ -170,13 +170,39 @@ public class FinanceRepository<TEntity> : IRepository<TEntity> where TEntity : B
         return await Where(predicate).CountAsync();
     }
 
-    public virtual IQueryable<TEntity> Where(Expression<Func<TEntity, bool>> predicate)
+    private IQueryable<TEntity> Where(Expression<Func<TEntity, bool>> predicate)
     {
         return _dbSet.Where(predicate);
     }
 
-    public virtual IQueryable<TEntity> WhereIf(bool condition, Expression<Func<TEntity, bool>> predicate)
+    private IQueryable<TEntity> WhereIf(bool condition, Expression<Func<TEntity, bool>> predicate)
     {
         return condition ? Where(predicate) : _dbSet;
+    }
+
+    public virtual async Task<IEnumerable<TResult>> SelectListAsync<TResult>(
+        Expression<Func<TEntity, TResult>> selector)
+    {
+        return await _dbSet.Select(selector).TagWithCallSite().ToListAsync();
+    }
+
+    public virtual async Task<IEnumerable<TResult>> SelectListAsync<TResult>(
+        Expression<Func<TEntity, bool>> predicate,
+        Expression<Func<TEntity, TResult>> selector)
+    {
+        return await Where(predicate).Select(selector).TagWithCallSite().ToListAsync();
+    }
+
+    public virtual async Task<TResult> SelectSingleAsync<TResult>(
+        Expression<Func<TEntity, bool>> predicate,
+        Expression<Func<TEntity, TResult>> selector)
+    {
+        var result = await Where(predicate).Select(selector).SingleOrDefaultAsync();
+        if (result == null)
+        {
+            throw new EntityNotFoundException(typeof(TEntity));
+        }
+
+        return result;
     }
 }
