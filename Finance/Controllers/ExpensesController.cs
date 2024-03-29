@@ -105,7 +105,7 @@ public class ExpensesController : ControllerBase
         }
         catch (FinanceException e)
         {
-            return this.ToActionResult(HttpStatusCode.NotFound, message: e.Message);
+            return this.ToActionResult(HttpStatusCode.ServiceUnavailable, message: e.Message);
         }
     }
 }

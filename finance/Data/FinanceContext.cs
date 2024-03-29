@@ -1,6 +1,7 @@
 ﻿using Finance.Models;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using System.Linq.Expressions;
 
 namespace Finance.Data
@@ -13,11 +14,11 @@ namespace Finance.Data
 
         public virtual DbSet<Expense> Expenses => Set<Expense>();
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        protected override void OnModelCreating(ModelBuilder mb)
         {
-            base.OnModelCreating(modelBuilder);
+            base.OnModelCreating(mb);
 
-            foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+            foreach (var entityType in mb.Model.GetEntityTypes())
             {
                 if (!FilterDeleted && typeof(SoftableDeleted).IsAssignableFrom(entityType.ClrType))
                 {
@@ -28,13 +29,20 @@ namespace Finance.Data
 
                     var lambda = Expression.Lambda(condition, parameter);
 
-                    modelBuilder.Entity(entityType.ClrType).HasQueryFilter(lambda);
+                    mb.Entity(entityType.ClrType).HasQueryFilter(lambda);
                 }
             }
 
-            modelBuilder.Entity<Expense>(e =>
+            mb.Entity<Expense>(e =>
             {
                 e.HasKey(e => e.Id);
+                e.Property(e => e.Category).HasConversion(new EnumToStringConverter<ExpenseCategory>());
+            });
+            mb.Entity<Installment>(e =>
+            {
+                e.HasKey(e => e.Id);
+                e.HasIndex(e => new { e.ExpenseId, e.DueDate });
+                e.HasOne(e => e.Expense).WithMany().HasForeignKey(e => e.ExpenseId);
             });
         }
 
