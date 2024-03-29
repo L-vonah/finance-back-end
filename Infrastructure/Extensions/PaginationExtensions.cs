@@ -8,7 +8,7 @@ namespace Infrastructure.Extensions
         public static async Task<PaginatedList<T>> ToPaginatedListAsync<T>(this IQueryable<T> source, int pageIndex, int pageSize)
         {
             var totalItems = await source.CountAsync();
-            var items = await source.Skip((pageIndex - 1) * pageSize).Take(pageSize).ToListAsync();
+            var items = await source.Skip((pageIndex - 1) * pageSize).Take(pageSize).TagWithCallSite().ToListAsync();
             var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
 
             return new PaginatedList<T>

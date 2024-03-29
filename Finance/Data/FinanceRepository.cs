@@ -9,6 +9,7 @@ namespace Finance.Data;
 public class FinanceRepository<TEntity> : IRepository<TEntity> where TEntity : BaseEntity
 {
     private readonly FinanceContext _context;
+    private DbSet<TEntity> _dbSet => _context.Set<TEntity>();
 
     public FinanceRepository(FinanceContext context)
     {
@@ -17,32 +18,32 @@ public class FinanceRepository<TEntity> : IRepository<TEntity> where TEntity : B
 
     public virtual async Task<TEntity> FindAsync(int id)
     {
-        var entity = await _context.Set<TEntity>().FindAsync(id);
-        if (entity != null)
+        var entity = await _dbSet.FindAsync(id);
+        if (entity == null)
         {
-            return entity;
+            throw new EntityNotFoundException(typeof(TEntity), id);
         }
-        throw new EntityNotFoundException(typeof(TEntity), id);
+        return entity;
     }
 
     public virtual async Task<TEntity> FindAsync(Expression<Func<TEntity, bool>> match)
     {
-        var entity = await _context.Set<TEntity>().Where(match).SingleOrDefaultAsync();
-        if (entity != null)
+        var entity = await Where(match).SingleOrDefaultAsync();
+        if (entity == null)
         {
-            return entity;
+            throw new EntityNotFoundException(typeof(TEntity));
         }
-        throw new EntityNotFoundException(typeof(TEntity));
+        return entity;
     }
 
     public virtual async Task<IEnumerable<TEntity>> GetAllAsync()
     {
-        return await _context.Set<TEntity>().ToListAsync();
+        return await _dbSet.TagWithCallSite().ToListAsync();
     }
 
     public virtual async Task<IEnumerable<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>> match)
     {
-        return await _context.Set<TEntity>().Where(match).ToListAsync();
+        return await Where(match).TagWithCallSite().ToListAsync();
     }
 
     public virtual async Task AddAsync(TEntity entity)
@@ -52,13 +53,13 @@ public class FinanceRepository<TEntity> : IRepository<TEntity> where TEntity : B
             throw new EntityNotNullException(typeof(TEntity));
         }
 
-        _context.Set<TEntity>().Add(entity);
+        _dbSet.Add(entity);
 
         try
         {
             await _context.SaveChangesAsync();
         }
-        catch (DbUpdateConcurrencyException e)
+        catch (DbUpdateException e)
         {
             throw new FinanceException("It was not possible to add the entity.", e);
         }
@@ -71,13 +72,13 @@ public class FinanceRepository<TEntity> : IRepository<TEntity> where TEntity : B
             throw new EntityNotNullException(typeof(TEntity));
         }
 
-        _context.Set<TEntity>().AddRange(entities);
+        _dbSet.AddRange(entities);
 
         try
         {
             await _context.SaveChangesAsync();
         }
-        catch (DbUpdateConcurrencyException e)
+        catch (DbUpdateException e)
         {
             throw new FinanceException("It was not possible to add the entities.", e);
         }
@@ -90,13 +91,13 @@ public class FinanceRepository<TEntity> : IRepository<TEntity> where TEntity : B
             throw new EntityNotNullException(typeof(TEntity));
         }
 
-        _context.Set<TEntity>().Update(entity);
+        _dbSet.Update(entity);
 
         try
         {
             await _context.SaveChangesAsync();
         }
-        catch (DbUpdateConcurrencyException e)
+        catch (DbUpdateException e)
         {
             throw new FinanceException("It was not possible to update the entity.", e);
         }
@@ -109,13 +110,13 @@ public class FinanceRepository<TEntity> : IRepository<TEntity> where TEntity : B
             throw new EntityNotNullException(typeof(TEntity));
         }
 
-        _context.Set<TEntity>().UpdateRange(entities);
+        _dbSet.UpdateRange(entities);
 
         try
         {
             await _context.SaveChangesAsync();
         }
-        catch (DbUpdateConcurrencyException e)
+        catch (DbUpdateException e)
         {
             throw new FinanceException("It was not possible to update the entities.", e);
         }
@@ -128,13 +129,13 @@ public class FinanceRepository<TEntity> : IRepository<TEntity> where TEntity : B
             throw new EntityNotNullException(typeof(TEntity));
         }
 
-        _context.Set<TEntity>().Remove(entity);
+        _dbSet.Remove(entity);
 
         try
         {
             await _context.SaveChangesAsync();
         }
-        catch (DbUpdateConcurrencyException e)
+        catch (DbUpdateException e)
         {
             throw new FinanceException("It was not possible to remove the entity.", e);
         }
@@ -147,13 +148,13 @@ public class FinanceRepository<TEntity> : IRepository<TEntity> where TEntity : B
             throw new EntityNotNullException(typeof(TEntity));
         }
 
-        _context.Set<TEntity>().RemoveRange(entities);
+        _dbSet.RemoveRange(entities);
 
         try
         {
             await _context.SaveChangesAsync();
         }
-        catch (DbUpdateConcurrencyException e)
+        catch (DbUpdateException e)
         {
             throw new FinanceException("It was not possible to remove the entities.", e);
         }
@@ -161,21 +162,47 @@ public class FinanceRepository<TEntity> : IRepository<TEntity> where TEntity : B
 
     public virtual async Task<int> CountAsync()
     {
-        return await _context.Set<TEntity>().CountAsync();
+        return await _dbSet.CountAsync();
     }
 
     public virtual async Task<int> CountAsync(Expression<Func<TEntity, bool>> predicate)
     {
-        return await _context.Set<TEntity>().Where(predicate).CountAsync();
+        return await Where(predicate).CountAsync();
     }
 
-    public virtual IQueryable<TEntity> Where(Expression<Func<TEntity, bool>> predicate)
+    private IQueryable<TEntity> Where(Expression<Func<TEntity, bool>> predicate)
     {
-        return _context.Set<TEntity>().Where(predicate);
+        return _dbSet.Where(predicate);
     }
 
-    public virtual IQueryable<TEntity> WhereIf(bool condition, Expression<Func<TEntity, bool>> predicate)
+    private IQueryable<TEntity> WhereIf(bool condition, Expression<Func<TEntity, bool>> predicate)
     {
-        return condition ? _context.Set<TEntity>().Where(predicate) : _context.Set<TEntity>();
+        return condition ? Where(predicate) : _dbSet;
+    }
+
+    public virtual async Task<IEnumerable<TResult>> SelectListAsync<TResult>(
+        Expression<Func<TEntity, TResult>> selector)
+    {
+        return await _dbSet.Select(selector).TagWithCallSite().ToListAsync();
+    }
+
+    public virtual async Task<IEnumerable<TResult>> SelectListAsync<TResult>(
+        Expression<Func<TEntity, bool>> predicate,
+        Expression<Func<TEntity, TResult>> selector)
+    {
+        return await Where(predicate).Select(selector).TagWithCallSite().ToListAsync();
+    }
+
+    public virtual async Task<TResult> SelectSingleAsync<TResult>(
+        Expression<Func<TEntity, bool>> predicate,
+        Expression<Func<TEntity, TResult>> selector)
+    {
+        var result = await Where(predicate).Select(selector).SingleOrDefaultAsync();
+        if (result == null)
+        {
+            throw new EntityNotFoundException(typeof(TEntity));
+        }
+
+        return result;
     }
 }

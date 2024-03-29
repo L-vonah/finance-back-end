@@ -31,7 +31,7 @@ public class ExpensesController : ControllerBase
         return this.ToActionResult(HttpStatusCode.OK, expenses);
     }
 
-    [HttpGet("{id}")]
+    [HttpGet("{id:int}")]
     [ProducesResponseType(typeof(Expense), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetExpense(int id)
@@ -87,7 +87,7 @@ public class ExpensesController : ControllerBase
         }
     }
 
-    [HttpDelete("{id}")]
+    [HttpDelete("{id:int}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status503ServiceUnavailable)]
@@ -96,8 +96,8 @@ public class ExpensesController : ControllerBase
         try
         {
             Expense expense = await _repository.FindAsync(id);
-            await _repository.RemoveAsync(expense!);
-            return Ok();
+            await _repository.RemoveAsync(expense);
+            return this.ToActionResult(HttpStatusCode.OK, expense);
         }
         catch (EntityNotFoundException e)
         {
