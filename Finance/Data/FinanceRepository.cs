@@ -170,7 +170,7 @@ public class FinanceRepository<TEntity> : IRepository<TEntity> where TEntity : B
         return await Where(predicate).CountAsync();
     }
 
-    private IQueryable<TEntity> Where(Expression<Func<TEntity, bool>> predicate)
+    public IQueryable<TEntity> Where(Expression<Func<TEntity, bool>> predicate)
     {
         return _dbSet.Where(predicate);
     }
