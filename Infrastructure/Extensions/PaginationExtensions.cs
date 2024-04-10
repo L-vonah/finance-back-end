@@ -1,5 +1,6 @@
 ﻿using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace Infrastructure.Extensions
 {
@@ -20,24 +21,24 @@ namespace Infrastructure.Extensions
             };
         }
 
-        public static async Task<PaginatedList<T>> ToPaginatedListAsync<T>(this IQueryable<T> source, PageFilter filter)
+        public static async Task<PaginatedList<T>> ToPaginatedListAsync<T>(this IQueryable<T> source, PageFilter filter) where T : BaseEntity
         {
             filter.Validate(typeof(T));
             if (!string.IsNullOrEmpty(filter.SortBy))
             {
-                var property = typeof(T).GetProperty(filter.SortBy);
-                if (property != null)
-                {
-                    source = filter.SortOrder == SortOrder.Descending
-                        ? source.OrderByDescending(x => property.GetValue(x, null))
-                        : source.OrderBy(x => property.GetValue(x, null));
-                }
+                var parameter = Expression.Parameter(typeof(T), "x");
+                var property = Expression.Property(parameter, filter.SortBy);
+                var lambda = Expression.Lambda<Func<T, object>>(Expression.Convert(property, typeof(object)), parameter);
+
+                source = filter.SortOrder == SortOrder.Descending
+                    ? source.OrderByDescending(lambda)
+                    : source.OrderBy(lambda);
             }
             else
             {
                 source = filter.SortOrder == SortOrder.Descending
-                    ? source.OrderByDescending(x => x)
-                    : source.OrderBy(x => x);
+                    ? source.OrderByDescending(x => x.Id)
+                    : source.OrderBy(x => x.Id);
             }
 
             return await source.ToPaginatedListAsync(filter.Page, filter.PageSize);
