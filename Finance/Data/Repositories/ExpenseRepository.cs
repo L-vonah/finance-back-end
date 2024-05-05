@@ -45,17 +45,19 @@ namespace Finance.Data.Repositories
             expense.NextPaymentDate = expense.FirstPaymentDate;
             expense.Installments = [];
 
-            while (expenseDto.InstallmentCount > 0)
+            int installmentCount = expense.InstallmentCount!.Value;
+            while (installmentCount > 0)
             {
                 expense.Installments.Add(new Installment
                 {
-                    Amount = expense.TotalAmount / expenseDto.InstallmentCount!.Value,
-                    DueDate = expenseDto.FirstPaymentDate.AddMonths(expenseDto.InstallmentCount!.Value - 1),
-                    Number = expenseDto.InstallmentCount!.Value,
+                    Expense = expense,
+                    Amount = expense.TotalAmount / expense.InstallmentCount!.Value,
+                    DueDate = expense.FirstPaymentDate!.Value.AddMonths(installmentCount - 1),
+                    Number = installmentCount,
                     Status = InstallmentStatus.Pending
                 });
 
-                expenseDto.InstallmentCount--;
+                installmentCount--;
             }
 
             await base.AddAsync(expense);
