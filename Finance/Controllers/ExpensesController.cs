@@ -1,9 +1,12 @@
 ﻿using AutoMapper;
+using finance.Extensions;
 using Finance.Data.Repositories;
 using Finance.Dtos;
 using Finance.Exceptions;
 using Finance.Extensions;
 using Finance.Models;
+using Infrastructure.Data;
+using Infrastructure.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 
@@ -24,10 +27,15 @@ public class ExpensesController : ControllerBase
     }
 
     [HttpGet]
-    [ProducesResponseType(typeof(IEnumerable<Expense>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> ListExpenses()
+    [ProducesResponseType(typeof(PaginatedList<Expense>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> ListExpenses([FromQuery] ExpenseFilter filter)
     {
-        var expenses = await _repository.GetAllAsync();
+        filter.Validate(typeof(Expense));
+
+        var expenses = await _repository.FilterBy(e =>
+                filter.Category == null || e.Category == filter.Category
+            ).ToPaginatedListAsync(filter);
+
         return this.ToActionResult(HttpStatusCode.OK, expenses);
     }
 
@@ -45,6 +53,17 @@ public class ExpensesController : ControllerBase
         {
             return this.ToActionResult(HttpStatusCode.NotFound, message: e.Message);
         }
+    }
+
+    [HttpGet("catgories")]
+    [ProducesResponseType(typeof(List<string>), StatusCodes.Status200OK)]
+    public IActionResult ListExpenseCategories()
+    {
+        var categories = Enum.GetValues(typeof(ExpenseCategory))
+            .Cast<ExpenseCategory>()
+            .Select(c => c.GetDescription());
+
+        return this.ToActionResult(HttpStatusCode.OK, categories);
     }
 
     [HttpPost]
@@ -108,4 +127,9 @@ public class ExpensesController : ControllerBase
             return this.ToActionResult(HttpStatusCode.ServiceUnavailable, message: e.Message);
         }
     }
+}
+
+public class ExpenseFilter : PageFilter
+{
+    public ExpenseCategory? Category { get; set; }
 }
