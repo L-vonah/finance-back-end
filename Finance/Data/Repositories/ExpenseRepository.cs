@@ -1,4 +1,5 @@
 ﻿using Finance.Models;
+using System.Linq.Expressions;
 
 namespace Finance.Data.Repositories
 {
@@ -9,6 +10,11 @@ namespace Finance.Data.Repositories
         public async Task<IEnumerable<Expense>> GetByCategoryAsync(ExpenseCategory category)
         {
             return await base.GetAllAsync(e => e.Category == category);
+        }
+
+        public IQueryable<Expense> FilterBy(Expression<Func<Expense, bool>> predicate)
+        {
+            return base.Where(predicate);
         }
     }
 }

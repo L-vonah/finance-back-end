@@ -175,6 +175,11 @@ public class FinanceRepository<TEntity> : IRepository<TEntity> where TEntity : B
         return _dbSet.Where(predicate);
     }
 
+    public IQueryable<TEntity> AsQueryable()
+    {
+        return _dbSet.AsQueryable();
+    }
+
     private IQueryable<TEntity> WhereIf(bool condition, Expression<Func<TEntity, bool>> predicate)
     {
         return condition ? Where(predicate) : _dbSet;
