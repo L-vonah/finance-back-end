@@ -9,10 +9,12 @@ namespace Finance.Data
     public class FinanceContext : DbContext
     {
         public static bool FilterDeleted { get; set; } = false;
+        public static string DeleteColumnName { get; set; } = "DeletedAt";
 
         public FinanceContext(DbContextOptions<FinanceContext> options) : base(options) { }
 
         public virtual DbSet<Expense> Expenses => Set<Expense>();
+        public virtual DbSet<Installment> Installments => Set<Installment>();
 
         protected override void OnModelCreating(ModelBuilder mb)
         {
@@ -23,7 +25,7 @@ namespace Finance.Data
                 if (!FilterDeleted && typeof(SoftableDeleted).IsAssignableFrom(entityType.ClrType))
                 {
                     var parameter = Expression.Parameter(entityType.ClrType, "e");
-                    var property = Expression.Property(parameter, "DeletedAt");
+                    var property = Expression.Property(parameter, DeleteColumnName);
                     var nullConstant = Expression.Constant(null, typeof(DateTime?));
                     var condition = Expression.Equal(property, nullConstant);
 
@@ -37,6 +39,8 @@ namespace Finance.Data
             {
                 e.HasKey(e => e.Id);
                 e.Property(e => e.Category).HasConversion(new EnumToStringConverter<ExpenseCategory>());
+                e.Property(e => e.Type).HasConversion(new EnumToStringConverter<ExpenseType>());
+                e.Property(e => e.RecurrencyType).HasConversion(new EnumToStringConverter<RecurrencyType>());
             });
             mb.Entity<Installment>(e =>
             {

@@ -33,7 +33,8 @@ public class ExpensesController : ControllerBase
         filter.Validate(typeof(Expense));
 
         var expenses = await _repository.FilterBy(e =>
-                filter.Category == null || e.Category == filter.Category
+                (filter.Category == null || e.Category == filter.Category) &&
+                (filter.Type == null || e.Type == filter.Type)
             ).ToPaginatedListAsync(filter);
 
         return this.ToActionResult(HttpStatusCode.OK, expenses);
@@ -132,4 +133,5 @@ public class ExpensesController : ControllerBase
 public class ExpenseFilter : PageFilter
 {
     public ExpenseCategory? Category { get; set; }
+    public ExpenseType? Type { get; set; }
 }

@@ -1,12 +1,24 @@
 ﻿using Infrastructure.Data;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 
 namespace Finance.Models;
 
 public class Expense : BaseEntity
 {
-    public string Description { get; set; } = null!;
+    public string Name { get; set; } = null!;
+
+    [MaxLength(100)]
+    public string? Description { get; set; }
+    public decimal TotalAmount { get; set; }
+    public DateTime? LastPaymentDate { get; set; }
+    public DateTime? NextPaymentDate { get; set; }
+    public bool Finished { get; set; }
     public ExpenseCategory Category { get; set; }
+    public ExpenseType Type { get; set; }
+    public RecurrencyType? RecurrencyType { get; set; }
+    public int? InstallmentCount { get; set; }
+    public ICollection<Installment>? Installments { get; set; }
 }
 
 public enum ExpenseCategory
@@ -30,5 +42,9 @@ public enum ExpenseCategory
     [Description("Animais de Estimação")] Pets,
     [Description("Presentes")] Gifts,
     [Description("Negócios")] Business,
-    [Description("Despesas Variáveis")] VariableExpenses
+    [Description("Outros")] Others
 }
+
+public enum ExpenseType { Installment, Recurrent }
+
+public enum RecurrencyType { FixedDay, Daily, Weekly, Monthly, Yearly }
