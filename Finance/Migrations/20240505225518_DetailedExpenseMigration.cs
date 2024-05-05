@@ -35,6 +35,12 @@ namespace Finance.Migrations
                 nullable: false,
                 defaultValue: false);
 
+            migrationBuilder.AddColumn<DateTime>(
+                name: "FirstPaymentDate",
+                table: "Expenses",
+                type: "TEXT",
+                nullable: true);
+
             migrationBuilder.AddColumn<int>(
                 name: "InstallmentCount",
                 table: "Expenses",
@@ -87,6 +93,7 @@ namespace Finance.Migrations
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     ExpenseId = table.Column<int>(type: "INTEGER", nullable: false),
+                    PaymentDate = table.Column<DateTime>(type: "TEXT", nullable: true),
                     DueDate = table.Column<DateTime>(type: "TEXT", nullable: false),
                     Number = table.Column<int>(type: "INTEGER", nullable: false),
                     Amount = table.Column<decimal>(type: "TEXT", nullable: false),
@@ -131,6 +138,10 @@ namespace Finance.Migrations
 
             migrationBuilder.DropColumn(
                 name: "Finished",
+                table: "Expenses");
+
+            migrationBuilder.DropColumn(
+                name: "FirstPaymentDate",
                 table: "Expenses");
 
             migrationBuilder.DropColumn(

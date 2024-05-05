@@ -72,11 +72,12 @@ public class ExpensesController : ControllerBase
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status503ServiceUnavailable)]
     public async Task<IActionResult> AddExpense([FromBody] ExpenseDto expenseDto)
     {
-        Expense expense = _mapper.Map<Expense>(expenseDto.RequireNotNull());
+        expenseDto.RequireNotNull();
+        Expense expense;
 
         try
         {
-            await _repository.AddAsync(expense);
+            expense = await _repository.AddExpense(expenseDto);
         }
         catch (FinanceException e)
         {

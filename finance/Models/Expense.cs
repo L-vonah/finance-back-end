@@ -11,6 +11,7 @@ public class Expense : BaseEntity
     [MaxLength(100)]
     public string? Description { get; set; }
     public decimal TotalAmount { get; set; }
+    public DateTime? FirstPaymentDate { get; set; }
     public DateTime? LastPaymentDate { get; set; }
     public DateTime? NextPaymentDate { get; set; }
     public bool Finished { get; set; }

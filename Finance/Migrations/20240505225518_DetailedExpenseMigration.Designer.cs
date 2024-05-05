@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Finance.Migrations
 {
     [DbContext(typeof(FinanceContext))]
-    [Migration("20240505213141_DetailedExpenseMigration")]
+    [Migration("20240505225518_DetailedExpenseMigration")]
     partial class DetailedExpenseMigration
     {
         /// <inheritdoc />
@@ -42,6 +42,9 @@ namespace Finance.Migrations
 
                     b.Property<bool>("Finished")
                         .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("FirstPaymentDate")
+                        .HasColumnType("TEXT");
 
                     b.Property<int?>("InstallmentCount")
                         .HasColumnType("INTEGER");
@@ -100,6 +103,9 @@ namespace Finance.Migrations
 
                     b.Property<int>("Number")
                         .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("PaymentDate")
+                        .HasColumnType("TEXT");
 
                     b.Property<int>("Status")
                         .HasColumnType("INTEGER");

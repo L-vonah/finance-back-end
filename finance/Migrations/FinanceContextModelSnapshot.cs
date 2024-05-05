@@ -40,6 +40,9 @@ namespace Finance.Migrations
                     b.Property<bool>("Finished")
                         .HasColumnType("INTEGER");
 
+                    b.Property<DateTime?>("FirstPaymentDate")
+                        .HasColumnType("TEXT");
+
                     b.Property<int?>("InstallmentCount")
                         .HasColumnType("INTEGER");
 
@@ -97,6 +100,9 @@ namespace Finance.Migrations
 
                     b.Property<int>("Number")
                         .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("PaymentDate")
+                        .HasColumnType("TEXT");
 
                     b.Property<int>("Status")
                         .HasColumnType("INTEGER");
